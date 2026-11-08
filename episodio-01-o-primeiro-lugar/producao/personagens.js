@@ -339,3 +339,10 @@ const VIS_MARIA = { pele: '#C99467', tunica: '#7E9CB8', veu: '#EADFC6', cabeloTr
 const jesus = p => biblico(p, VIS_JESUS);
 const marta = p => biblico(p, { ...VIS_MARTA, bravo: p.bravo });
 const maria = p => biblico(p, VIS_MARIA);
+
+/* ------------------------------- utilitários ------------------------------- */
+function estrela(x, y, r, rot, cor) {
+  let d = '';
+  for (let i = 0; i < 10; i++) { const a = rad(i * 36 - 90), rr = i % 2 ? r * 0.45 : r; d += `${i ? 'L' : 'M'}${x + Math.cos(a) * rr} ${y + Math.sin(a) * rr}`; }
+  return `<path d="${d}Z" fill="${cor}" ${contorno(3.5)} transform="rotate(${rot} ${x} ${y})"/>`;
+}

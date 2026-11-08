@@ -78,11 +78,6 @@ function borboleta(t) {
     <rect x="-3" y="-14" width="6" height="30" rx="3" fill="${OL}"/></g>`;
 }
 
-function estrela(x, y, r, rot, cor) {
-  let d = '';
-  for (let i = 0; i < 10; i++) { const a = rad(i * 36 - 90), rr = i % 2 ? r * 0.45 : r; d += `${i ? 'L' : 'M'}${x + Math.cos(a) * rr} ${y + Math.sin(a) * rr}`; }
-  return `<path d="${d}Z" fill="${cor}" ${contorno(3.5)} transform="rotate(${rot} ${x} ${y})"/>`;
-}
 
 /* -------------------------------- câmera -------------------------------- */
 const CAM = [[0, 960, 540, 1], [2.6, 960, 540, 1], [7.4, 900, 560, 1.08], [9.0, 880, 600, 1.28], [13.6, 900, 600, 1.22],
