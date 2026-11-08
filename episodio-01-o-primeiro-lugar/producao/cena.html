@@ -1,0 +1,385 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Baloo;src:url(../assets/baloo2-800.woff2) format('woff2');font-weight:800}
+html,body{margin:0;padding:0;background:#000;overflow:hidden}
+svg{display:block}
+</style></head>
+<body>
+<svg id="tela" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+/* =====================================================================
+   "O Primeiro Lugar" - cena de teste (estilo cartoon com contorno)
+   render(t) desenha o quadro do instante t (segundos).
+   window.DADOS vem de audio.py (linha do tempo + sincronia labial).
+   ===================================================================== */
+const W = 1920, H = 1080, OL = '#2a1a12';
+const COR = {
+  pele: '#B0703F', peleVo: '#BC7D4E', cabelo: '#24170F', camisa: '#FF7A1A', short: '#2F62C9', tenis: '#E8352E',
+  cardiga: '#4F8A5B', calca: '#6B5A4E', sapato: '#5B3A2E', branco: '#FFFFFF', boca: '#7a1f1f', lingua: '#ff8a8a',
+  ceu1: '#62C3F2', ceu2: '#CDEFFC', morro1: '#8ED46F', morro2: '#6CCB54', chao: '#5DBB4A', chao2: '#47AE3A'
+};
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const suave = k => k * k * (3 - 2 * k);
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const rad = d => d * Math.PI / 180;
+const contorno = sw => `stroke="${OL}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"`;
+function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+// membro com contorno (linha grossa sobre linha mais grossa escura)
+const membro = (x1, y1, x2, y2, w, c, sw) =>
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${OL}" stroke-width="${w + 2 * sw}" stroke-linecap="round"/>` +
+  `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+
+// valor da boca (0..1) para um personagem no instante t
+function boca(quem, t) {
+  const arr = (window.DADOS && DADOS.boca[quem]) || [];
+  const f = t * DADOS.fps, i = Math.floor(f), k = f - i;
+  return lerp(arr[i] || 0, arr[i + 1] || 0, k);
+}
+// piscar: fechado por ~0.12s a cada alguns segundos
+function piscar(t, semente) {
+  const per = 3.2 + semente * 0.7, fase = (t + semente * 1.3) % per;
+  return fase < 0.12 ? Math.sin(fase / 0.12 * Math.PI) : 0;
+}
+
+/* ------------------------------- olhos e boca ------------------------------- */
+function olhosGrandes(cx, cy, r, look, fech, sw, sobr = 0) {
+  let s = '';
+  for (const d of [-1, 1]) {
+    const x = cx + d * r * 0.36, y = cy + r * 0.06;
+    const rx = r * 0.19, ry = r * 0.24;
+    if (fech > 0.75) {
+      s += `<path d="M${x - rx} ${y} Q${x} ${y + ry * 0.5} ${x + rx} ${y}" fill="none" ${contorno(sw)}/>`;
+    } else {
+      const k = 1 - fech;
+      s += `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry * k}" fill="#fff" ${contorno(sw)}/>`;
+      const px = x + look[0] * r * 0.07, py = y + look[1] * r * 0.07;
+      s += `<ellipse cx="${px}" cy="${py}" rx="${r * 0.115}" ry="${r * 0.12 * k}" fill="#1d120c"/>`;
+      s += `<circle cx="${px + r * 0.04}" cy="${py - r * 0.05 * k}" r="${r * 0.045}" fill="#fff"/>`;
+    }
+    // sobrancelha
+    const by = y - ry - r * 0.12 - sobr * r * 0.12;
+    s += `<path d="M${x - rx * 0.9} ${by + d * 0} Q${x} ${by - r * 0.08} ${x + rx * 0.9} ${by}" fill="none" stroke="${OL}" stroke-width="${sw * 1.3}" stroke-linecap="round"/>`;
+  }
+  return s;
+}
+function bocaCartoon(cx, y, r, m, sw, t, sorriso = 1) {
+  if (m < 0.12) {
+    const w = r * 0.24;
+    return `<path d="M${cx - w} ${y} Q${cx} ${y + r * 0.22 * sorriso} ${cx + w} ${y}" fill="none" ${contorno(sw)}/>`;
+  }
+  const varia = 0.85 + 0.3 * Math.abs(Math.sin(t * 23)); // varia a largura: parece sílabas diferentes
+  const w = r * (0.17 + 0.07 * m) * varia, h = r * (0.1 + 0.32 * m);
+  return `<path d="M${cx - w} ${y - 2} Q${cx} ${y - 6} ${cx + w} ${y - 2} Q${cx + w * 0.9} ${y + h} ${cx} ${y + h} Q${cx - w * 0.9} ${y + h} ${cx - w} ${y - 2} Z" fill="${COR.boca}" ${contorno(sw)}/>` +
+    `<ellipse cx="${cx}" cy="${y + h * 0.72}" rx="${w * 0.55}" ry="${h * 0.24}" fill="${COR.lingua}"/>`;
+}
+
+/* ---------------------------------- Davi ---------------------------------- */
+function controle(x, y, s, sw) {
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <path d="M-38 -14 Q-38 -22 -26 -22 H26 Q38 -22 38 -14 L44 12 Q46 24 34 24 Q26 24 20 12 H-20 Q-26 24 -34 24 Q-46 24 -44 12 Z" fill="#7B4FD6" ${contorno(sw)}/>
+    <path d="M-24 -6 v12 M-30 0 h12" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="20" cy="-6" r="4.5" fill="#FFD447"/><circle cx="28" cy="2" r="4.5" fill="#4CD964"/>
+    <circle cx="12" cy="2" r="4.5" fill="#FF5A5A"/></g>`;
+}
+function caixa(x, y, s, sw, comTampa = true, rot = 0) {
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+    <rect x="-37" y="-56" width="74" height="56" rx="4" fill="#E8352E" ${contorno(sw)}/>
+    <rect x="-8" y="-56" width="16" height="56" fill="#FFD447" ${contorno(sw * 0.6)}/>
+    ${comTampa ? tampa(0, -56, 1, sw) : ''}</g>`;
+}
+function tampa(x, y, s, sw, rot = 0) {
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+    <path d="M-10 -16 Q-30 -40 -34 -20 Q-34 -12 -10 -16 Z" fill="#FFD447" ${contorno(sw * 0.8)}/>
+    <path d="M10 -16 Q30 -40 34 -20 Q34 -12 10 -16 Z" fill="#FFD447" ${contorno(sw * 0.8)}/>
+    <rect x="-42" y="-17" width="84" height="19" rx="4" fill="#F0453B" ${contorno(sw)}/>
+    <rect x="-8" y="-17" width="16" height="19" fill="#FFD447" ${contorno(sw * 0.6)}/></g>`;
+}
+
+function davi(p) {
+  const sw = 4.5, hr = 66, hy = -168;
+  let s = '';
+  // pernas
+  const pernas = [[-11, Math.sin(p.passo) * 0.45], [11, -Math.sin(p.passo) * 0.45]];
+  for (const [hx, a] of pernas) {
+    const fx = hx + Math.sin(a) * 44, fy = -52 + Math.cos(a) * 44;
+    s += membro(hx, -52, fx, fy - 4, 15, COR.pele, sw);
+    s += `<ellipse cx="${fx + (hx < 0 ? -4 : 4)}" cy="${fy}" rx="16" ry="8" fill="${COR.tenis}" ${contorno(sw)}/>`;
+  }
+  s += `<path d="M-32 -66 H32 V-34 H6 L0 -44 L-6 -34 H-32 Z" fill="${COR.short}" ${contorno(sw)}/>`;
+  const braco = (lado, ang) => {
+    const ox = lado * 34, oy = -106, L = 54;
+    const hx = ox + lado * Math.sin(rad(ang)) * L, hyy = oy + Math.cos(rad(ang)) * L;
+    return { svg: membro(ox, oy, hx, hyy, 14, COR.pele, sw) + `<circle cx="${hx}" cy="${hyy}" r="9.5" fill="${COR.pele}" ${contorno(sw)}/>`, x: hx, y: hyy };
+  };
+  const bE = braco(-1, p.bracoE), bD = braco(1, p.bracoD);
+  // tronco
+  s += `<path d="M-34 -116 Q0 -126 34 -116 L40 -56 Q0 -49 -40 -56 Z" fill="${COR.camisa}" ${contorno(sw)}/>`;
+  s += `<path d="M-11 -92 h22 M0 -105 v32" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
+  const mangas = `<circle cx="-34" cy="-108" r="12" fill="${COR.camisa}" ${contorno(sw)}/><circle cx="34" cy="-108" r="12" fill="${COR.camisa}" ${contorno(sw)}/>`;
+  if (!p.bracosCima) s += bE.svg + bD.svg + mangas;
+  // cabeça
+  let c = '';
+  c += `<circle cx="${-hr * 0.98}" cy="${hy + hr * .1}" r="${hr * .2}" fill="${COR.pele}" ${contorno(sw)}/>`;
+  c += `<circle cx="${hr * 0.98}" cy="${hy + hr * .1}" r="${hr * .2}" fill="${COR.pele}" ${contorno(sw)}/>`;
+  c += `<circle cx="0" cy="${hy}" r="${hr}" fill="${COR.pele}" ${contorno(sw)}/>`;
+  for (let a = 195; a <= 345; a += 25) { const r = rad(a); c += `<circle cx="${Math.cos(r) * hr * .86}" cy="${hy + Math.sin(r) * hr * .86}" r="${hr * .34}" fill="${COR.cabelo}" ${contorno(sw)}/>`; }
+  c += `<circle cx="0" cy="${hy - hr * .78}" r="${hr * .42}" fill="${COR.cabelo}" ${contorno(sw)}/>`;
+  c += olhosGrandes(0, hy, hr, p.olhar, p.pisca, sw, p.sobr || 0);
+  for (const d of [-1, 1]) c += `<circle cx="${d * hr * .58}" cy="${hy + hr * .34}" r="${hr * .13}" fill="#ff7b7b" opacity=".45"/>`;
+  c += bocaCartoon(0, hy + hr * 0.44, hr, p.boca, sw, p.t, p.sorriso ?? 1);
+  s += `<g transform="rotate(${p.inclina || 0} 0 -110)">${c}</g>`;
+  if (p.bracosCima) s += bE.svg + bD.svg + mangas;
+  // objeto nas mãos
+  if (p.segura === 'caixa') s += caixa(0, -48, 1, sw, true, p.caixaRot || 0);
+  if (p.segura === 'controle') s += controle(0, -74, 1, sw);
+  if (p.segura === 'controleCima') s += controle(bD.x + 6, bD.y - 10, 0.9, sw);
+  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.pulo || 0})">${s}</g>`;
+}
+
+/* ---------------------------------- Vovô ---------------------------------- */
+function vovo(p) {
+  const sw = 4.5, hr = 58, hy = -300;
+  let s = '';
+  for (const d of [-1, 1]) {
+    s += membro(d * 17, -118, d * 19, -16, 28, COR.calca, sw);
+    s += `<ellipse cx="${d * 24}" cy="-10" rx="24" ry="11" fill="${COR.sapato}" ${contorno(sw)}/>`;
+  }
+  s += `<path d="M-50 -250 Q0 -262 50 -250 L60 -112 Q0 -100 -60 -112 Z" fill="${COR.cardiga}" ${contorno(sw)}/>`;
+  s += `<path d="M-18 -254 L0 -214 L18 -254 Z" fill="#fff" ${contorno(sw * 0.8)}/>`;
+  for (const y of [-192, -164, -136]) s += `<circle cx="0" cy="${y}" r="5" fill="#E9D8A6" ${contorno(2.5)}/>`;
+  s += `<path d="M-40 -150 h22 v22 h-22 z" fill="#43794E" ${contorno(sw * 0.7)}/>`; // bolso
+  const braco = (lado, ang) => {
+    const ox = lado * 52, oy = -236, L = 92;
+    const hx = ox + lado * Math.sin(rad(ang)) * L, hyy = oy + Math.cos(rad(ang)) * L;
+    return membro(ox, oy, hx, hyy, 24, COR.cardiga, sw) + `<circle cx="${hx}" cy="${hyy}" r="13" fill="${COR.peleVo}" ${contorno(sw)}/>`;
+  };
+  s += braco(-1, p.bracoE) + braco(1, p.bracoD);
+  let c = '';
+  for (const d of [-1, 1]) c += `<circle cx="${d * hr * 0.98}" cy="${hy + 6}" r="${hr * .2}" fill="${COR.peleVo}" ${contorno(sw)}/>`;
+  c += `<circle cx="0" cy="${hy}" r="${hr}" fill="${COR.peleVo}" ${contorno(sw)}/>`;
+  c += `<ellipse cx="-18" cy="${hy - 38}" rx="14" ry="7" fill="#fff" opacity=".35" transform="rotate(-20 -18 ${hy - 38})"/>`; // brilho da careca
+  for (const d of [-1, 1]) {           // cabelo branco nas laterais
+    c += `<circle cx="${d * 54}" cy="${hy - 14}" r="18" fill="#F2F2F2" ${contorno(sw)}/>`;
+    c += `<circle cx="${d * 48}" cy="${hy - 34}" r="14" fill="#F2F2F2" ${contorno(sw)}/>`;
+    c += `<circle cx="${d * 58}" cy="${hy + 6}" r="13" fill="#F2F2F2" ${contorno(sw)}/>`;
+  }
+  // olhos atrás dos óculos
+  for (const d of [-1, 1]) {
+    const x = d * 21, y = hy - 4;
+    if (p.pisca > 0.6) c += `<path d="M${x - 7} ${y} q7 4 14 0" fill="none" ${contorno(3.5)}/>`;
+    else c += `<ellipse cx="${x + p.olhar[0] * 3}" cy="${y}" rx="5.5" ry="${7 * (1 - p.pisca)}" fill="#1d120c"/><circle cx="${x + p.olhar[0] * 3 + 2}" cy="${y - 2}" r="1.8" fill="#fff"/>`;
+    c += `<circle cx="${x}" cy="${y}" r="17" fill="#fff" fill-opacity=".18" stroke="#5B3A2E" stroke-width="4.5"/>`;
+    const by = hy - 30 - (p.sobr || 0) * 7;
+    c += `<path d="M${x - 15} ${by + 3} Q${x} ${by - 9} ${x + 15} ${by + 3}" fill="none" stroke="#F2F2F2" stroke-width="9" stroke-linecap="round"/>`;
+    c += `<path d="M${x - 15} ${by + 3} Q${x} ${by - 9} ${x + 15} ${by + 3}" fill="none" stroke="${OL}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+  }
+  c += `<path d="M-4 ${hy - 4} H4" stroke="#5B3A2E" stroke-width="4"/>`;
+  // boca (sob o bigode)
+  const m = p.boca;
+  if (m > 0.12) c += `<ellipse cx="0" cy="${hy + 33 + m * 4}" rx="${10 + 4 * m}" ry="${5 + 11 * m}" fill="${COR.boca}" ${contorno(3.5)}/>`;
+  else c += `<path d="M-14 ${hy + 32} Q0 ${hy + 42} 14 ${hy + 32}" fill="none" ${contorno(3.5)}/>`;
+  c += `<circle cx="0" cy="${hy + 12}" r="11" fill="#A9693E" ${contorno(sw * 0.8)}/>`; // nariz
+  c += `<path d="M0 ${hy + 22} Q-14 ${hy + 16} -30 ${hy + 26} Q-24 ${hy + 36} -10 ${hy + 32} Q-4 ${hy + 30} 0 ${hy + 26} Q4 ${hy + 30} 10 ${hy + 32} Q24 ${hy + 36} 30 ${hy + 26} Q14 ${hy + 16} 0 ${hy + 22} Z" fill="#F7F7F7" ${contorno(sw * 0.8)}/>`;
+  for (const d of [-1, 1]) c += `<circle cx="${d * 36}" cy="${hy + 22}" r="8" fill="#ff7b7b" opacity=".35"/>`;
+  s += `<g transform="rotate(${p.inclina || 0} 0 -250)">${c}</g>`;
+  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.resp || 0})">${s}</g>`;
+}
+
+/* -------------------------------- Algodão -------------------------------- */
+function algodao(p) {
+  const sw = 4.5;
+  let s = '';
+  const pern = [-22, -8, 12, 24];
+  pern.forEach((x, i) => { const a = Math.sin(p.passo + i * Math.PI / 2) * 6; s += `<rect x="${x - 4 + a}" y="-30" width="9" height="28" rx="4" fill="#3a2e2a" ${contorno(sw * 0.7)}/>`; });
+  const lã = [[-30, -50, 18], [-12, -60, 20], [8, -58, 20], [24, -48, 17], [-18, -38, 17], [4, -36, 18], [-36, -60, 12]];
+  for (const [x, y, r] of lã) s += `<circle cx="${x}" cy="${y}" r="${r + sw}" fill="${OL}"/>`;
+  for (const [x, y, r] of lã) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`;
+  let c = '';
+  c += `<ellipse cx="34" cy="-66" rx="9" ry="5" fill="#3a2e2a" ${contorno(sw * .7)} transform="rotate(-25 34 -66)"/>`;
+  c += `<ellipse cx="44" cy="-62" rx="16" ry="19" fill="#3a2e2a" ${contorno(sw)}/>`;
+  c += `<ellipse cx="60" cy="-68" rx="9" ry="5" fill="#3a2e2a" ${contorno(sw * .7)} transform="rotate(25 60 -68)"/>`;
+  c += `<circle cx="42" cy="-80" r="10" fill="#fff" ${contorno(sw * .7)}/><circle cx="50" cy="-82" r="8" fill="#fff" ${contorno(sw * .7)}/>`;
+  if (p.pisca > 0.6) c += `<path d="M44 -64 q4 3 8 0" stroke="#fff" stroke-width="2.5" fill="none"/>`;
+  else c += `<circle cx="48" cy="-64" r="5" fill="#fff"/><circle cx="49.5" cy="-64" r="2.6" fill="#111"/>`;
+  if (p.boca > 0.1) c += `<ellipse cx="50" cy="-50" rx="5" ry="${3 + 4 * p.boca}" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>`;
+  s += `<g transform="rotate(${p.inclina || 0} 34 -55)">${c}</g>`;
+  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.pulo || 0})">${s}</g>`;
+}
+
+/* --------------------------------- cenário --------------------------------- */
+function cenario(t) {
+  const sw = 7;
+  let s = '';
+  s += `<defs><linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${COR.ceu1}"/><stop offset="1" stop-color="${COR.ceu2}"/></linearGradient></defs>`;
+  s += `<rect x="-800" y="-400" width="3520" height="1900" fill="url(#ceu)"/>`;
+  // sol com raios girando
+  let raios = '';
+  for (let i = 0; i < 12; i++) raios += `<rect x="-7" y="-128" width="14" height="34" rx="7" fill="#FFE27A" transform="rotate(${i * 30 + t * 12})"/>`;
+  s += `<g transform="translate(1660 170)">${raios}<circle r="72" fill="#FFD447" ${contorno(sw)}/></g>`;
+  // nuvens
+  for (const [bx, y, k] of [[220, 150, 1], [900, 110, 1.3], [1300, 250, .8], [-300, 220, 1.1]]) {
+    const x = ((bx + t * 14 * k + 600) % 2800) - 600;
+    s += `<g transform="translate(${x} ${y}) scale(${k})" fill="#fff" ${contorno(sw)}><circle cx="0" cy="0" r="44"/><circle cx="52" cy="-18" r="58"/><circle cx="110" cy="2" r="42"/></g>`;
+    s += `<g transform="translate(${x} ${y}) scale(${k})" fill="#fff"><circle cx="0" cy="0" r="40"/><circle cx="52" cy="-18" r="54"/><circle cx="110" cy="2" r="38"/><rect x="0" y="0" width="110" height="38"/></g>`;
+  }
+  // morros
+  s += `<path d="M-800 640 Q-300 520 200 600 T1100 560 T2000 600 T2800 580 V1500 H-800 Z" fill="${COR.morro1}" ${contorno(sw)}/>`;
+  // árvore
+  s += `<g transform="translate(250 0)"><path d="M-26 830 L-18 560 H18 L26 830 Z" fill="#8A5A3B" ${contorno(sw)}/>
+     ${[[0, 470, 120], [-100, 540, 85], [100, 540, 90], [-40, 600, 80], [60, 610, 75]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + sw}" fill="${OL}"/>`).join('')}
+     ${[[0, 470, 120], [-100, 540, 85], [100, 540, 90], [-40, 600, 80], [60, 610, 75]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${COR.morro2}"/>`).join('')}
+     ${[[-60, 470], [40, 430], [80, 560], [-110, 560], [0, 560]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="13" fill="#E8352E" ${contorno(4)}/>`).join('')}</g>`;
+  // casa do vovô
+  s += `<g>
+    <rect x="1250" y="560" width="480" height="300" fill="#FFE3A8" ${contorno(sw)}/>
+    <rect x="1620" y="380" width="56" height="120" fill="#B5523F" ${contorno(sw)}/>
+    <path d="M1205 585 L1490 375 L1775 585 Z" fill="#D9483B" ${contorno(sw)}/>
+    <rect x="1300" y="630" width="120" height="110" rx="6" fill="#9FD8F5" ${contorno(sw)}/>
+    <path d="M1360 630 V740 M1300 685 H1420" stroke="${OL}" stroke-width="${sw}"/>
+    <rect x="1290" y="738" width="140" height="18" rx="5" fill="#C9874A" ${contorno(sw * .8)}/>
+    <rect x="1560" y="660" width="110" height="200" rx="12" fill="#A0603A" ${contorno(sw)}/>
+    <circle cx="1650" cy="765" r="7" fill="#FFD447" ${contorno(3)}/>
+    <circle cx="1490" cy="480" r="34" fill="#FFF6DD" ${contorno(sw)}/><path d="M1490 456 V504 M1466 480 H1514" stroke="${OL}" stroke-width="5"/>
+  </g>`;
+  // cerca
+  let cerca = `<rect x="-800" y="742" width="2040" height="16" fill="#fff" ${contorno(5)}/><rect x="-800" y="792" width="2040" height="16" fill="#fff" ${contorno(5)}/>`;
+  for (let x = -760; x < 1230; x += 78) cerca += `<path d="M${x} 840 V730 L${x + 13} 712 L${x + 26} 730 V840 Z" fill="#fff" ${contorno(5)}/>`;
+  s += cerca;
+  // chão
+  s += `<path d="M-800 850 Q300 800 960 830 T2800 840 V1500 H-800 Z" fill="${COR.chao}" ${contorno(sw)}/>`;
+  s += `<path d="M-800 1000 Q500 960 1100 990 T2800 980 V1500 H-800 Z" fill="${COR.chao2}"/>`;
+  // flores e tufos
+  const flores = [[60, 960], [380, 905], [520, 1010], [1110, 940], [1250, 1020], [1780, 950], [1880, 1040], [-120, 1000], [2040, 990], [700, 1050]];
+  flores.forEach(([x, y], i) => {
+    const a = Math.sin(t * 2 + i) * 6, cor = ['#FF8FB1', '#FFF3A0', '#B28DFF', '#fff'][i % 4];
+    s += `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 0 V-38" stroke="#2E7D32" stroke-width="5"/>
+      ${[0, 72, 144, 216, 288].map(d => `<circle cx="${Math.cos(rad(d)) * 11}" cy="${-42 + Math.sin(rad(d)) * 11}" r="9" fill="${cor}" ${contorno(3.5)}/>`).join('')}
+      <circle cx="0" cy="-42" r="7" fill="#F2994A" ${contorno(3.5)}/></g>`;
+  });
+  for (const [x, y] of [[180, 880], [640, 870], [1000, 900], [1500, 900], [1820, 885], [-200, 900]])
+    s += `<path d="M${x} ${y} l8 -26 l8 22 l8 -30 l8 34" fill="none" stroke="#2E7D32" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  return s;
+}
+
+function borboleta(t) {
+  const x = -100 + t * 70 + Math.sin(t * 1.3) * 60, y = 500 + Math.sin(t * 2.1) * 60;
+  const k = 0.25 + 0.75 * Math.abs(Math.sin(t * 16));
+  return `<g transform="translate(${x} ${y}) rotate(${Math.sin(t * 2) * 15})">
+    <g transform="scale(${k} 1)"><ellipse cx="-14" cy="-6" rx="15" ry="12" fill="#FFB74D" ${contorno(3.5)}/><ellipse cx="14" cy="-6" rx="15" ry="12" fill="#FFB74D" ${contorno(3.5)}/>
+    <ellipse cx="-10" cy="10" rx="9" ry="8" fill="#FF8A65" ${contorno(3.5)}/><ellipse cx="10" cy="10" rx="9" ry="8" fill="#FF8A65" ${contorno(3.5)}/></g>
+    <rect x="-3" y="-14" width="6" height="30" rx="3" fill="${OL}"/></g>`;
+}
+
+function estrela(x, y, r, rot, cor) {
+  let d = '';
+  for (let i = 0; i < 10; i++) { const a = rad(i * 36 - 90), rr = i % 2 ? r * 0.45 : r; d += `${i ? 'L' : 'M'}${x + Math.cos(a) * rr} ${y + Math.sin(a) * rr}`; }
+  return `<path d="${d}Z" fill="${cor}" ${contorno(3.5)} transform="rotate(${rot} ${x} ${y})"/>`;
+}
+
+/* -------------------------------- câmera -------------------------------- */
+const CAM = [[0, 960, 540, 1], [2.6, 960, 540, 1], [7.4, 900, 560, 1.08], [9.0, 880, 600, 1.28], [13.6, 900, 600, 1.22],
+  [15.0, 1130, 560, 1.12], [21.5, 1130, 570, 1.16], [23, 1130, 570, 1.16]];
+function camera(t) {
+  let i = 0; while (i < CAM.length - 2 && t > CAM[i + 1][0]) i++;
+  const [t0, x0, y0, z0] = CAM[i], [t1, x1, y1, z1] = CAM[i + 1];
+  const k = suave(seg(t, t0, t1));
+  return [lerp(x0, x1, k), lerp(y0, y1, k), lerp(z0, z1, k)];
+}
+
+/* ============================== quadro ============================== */
+function render(t) {
+  const E = DADOS.eventos, sw = 4.5;
+  const chao = 930;
+  // ---- Davi ----
+  const anda = seg(t, 2.8, E.davi_chega);
+  const dx = lerp(-220, 820, anda);
+  const andando = t > 2.8 && t < E.davi_chega;
+  const D = { t, x: dx, y: chao, esc: 1.7, passo: andando ? t * 11 : 0, pulo: andando ? -Math.abs(Math.sin(t * 11)) * 5 : 0,
+    bracoE: -24, bracoD: -24, olhar: [0.6, 0.2], pisca: piscar(t, 0.2), boca: boca('davi', t), segura: 'caixa', inclina: 0 };
+  const ab = E.abre_caixa;
+  if (t > E.davi_chega) { D.olhar = [0, 1]; D.inclina = -4; }
+  if (t > ab - 0.7 && t < ab) D.caixaRot = Math.sin(t * 40) * 5;                    // caixa treme
+  if (t >= ab) {                                                                      // surpresa
+    D.segura = null; D.bracoE = 70; D.bracoD = 70; D.olhar = [0, -1]; D.sobr = 1; D.boca = Math.max(D.boca, 0.5 * (1 - seg(t, ab + .5, ab + .9)));
+    D.inclina = 0;
+  }
+  if (t >= ab + 0.7) { D.segura = 'controle'; D.bracoE = -24; D.bracoD = -24; D.sobr = 0.5; D.olhar = [0, 0.3]; }
+  if (t >= 9.3 && t < 11.2) {                                                         // "Uau!" pulando
+    D.bracosCima = true; D.bracoE = 150; D.bracoD = 150; D.segura = 'controleCima'; D.sobr = 1;
+    D.pulo = -Math.abs(Math.sin((t - 9.3) * Math.PI * 1.6)) * 38; D.olhar = [0, -0.3];
+  }
+  if (t >= 11.2) { D.segura = 'controle'; D.bracoE = -24; D.bracoD = -24; D.pulo = -Math.abs(Math.sin((t - 11.2) * 6)) * 6 * (t < 13.5); D.olhar = [0.2, 0]; D.sobr = .4; }
+  if (t >= E.balido && t < 15.0) { D.olhar = [-1, 0.3]; D.inclina = 6; D.pulo = 0; }
+  if (t >= 15.0) { D.olhar = [1, -0.2]; D.inclina = -5 + Math.sin(t * 2) * 2; D.pulo = 0; D.sobr = 0.3; D.sorriso = 1.1; }
+  if (t >= 21.0) { D.inclina = -5 + Math.sin((t - 21) * 9) * 6 * (t < 22); }        // acena com a cabeça
+
+  // ---- Algodão ----
+  const andaA = seg(t, 3.1, E.davi_chega + 0.4);
+  const ax = lerp(-480, 560, andaA);
+  const andandoA = t > 3.1 && t < E.davi_chega + 0.4;
+  const A = { x: ax, y: chao + 14, esc: 1.45, passo: andandoA ? t * 14 : 0, pulo: andandoA ? -Math.abs(Math.sin(t * 7)) * 22 : 0,
+    pisca: piscar(t, 0.9), boca: boca('algodao', t), inclina: Math.sin(t * 1.5) * 3 };
+  if (t >= E.balido && t < E.balido + 0.9) { A.pulo = -Math.sin(seg(t, E.balido, E.balido + 0.6) * Math.PI) * 50; A.inclina = -15; }
+
+  // ---- Vovô ----
+  const V = { x: 1440, y: chao - 10, esc: 1.62, resp: Math.sin(t * 2) * 2, bracoE: 8, bracoD: 8, olhar: [-1, 0],
+    pisca: piscar(t, 1.7), boca: boca('vovo', t), inclina: Math.sin(t * 1.1) * 2, sobr: 0 };
+  if (t > 9.3 && t < 14.5) { V.inclina = 4; V.sobr = 0.6; }                           // achou graça
+  if (t >= 15.0 && t < 21.6) {                                                        // fala gesticulando
+    V.bracoD = 30 + Math.max(0, Math.sin((t - 15) * 2.2)) * 35;
+    V.inclina = -3 + Math.sin(t * 3) * 3;
+  }
+  if (t >= 20.6 && t < 22.5) { V.sobr = 1; V.inclina = 8; }                           // "hein?"
+
+  // ---- objetos da caixa ----
+  let objs = '';
+  if (t >= ab) {
+    const bx = dx + 0, by = chao - 48 * 1.7;
+    // tampa voando
+    const k = t - ab;
+    if (k < 1.6) objs += tampa(bx - k * 320, by - 56 * 1.7 - (520 * k - 520 * k * k), 1.7, sw, -k * 400);
+    // caixa cai no chão ao lado
+    const kc = seg(t, ab, ab + 0.35);
+    objs += caixa(lerp(bx, bx + 150, kc), lerp(by, chao + 10, kc * kc), 1.5, sw, false, lerp(0, 8, kc));
+    // brilhos
+    if (k < 1.6) for (let i = 0; i < 16; i++) {
+      const ang = rad(-170 + rnd(i) * 160), dist = suave(clamp(k / 1.2)) * (220 + rnd(i + 9) * 260);
+      const r = (14 + rnd(i + 3) * 18) * (1 - clamp((k - 0.6) / 1.0));
+      if (r > 0.5) objs += estrela(bx + Math.cos(ang) * dist, by - 60 + Math.sin(ang) * dist, r, k * 300 + i * 20, i % 3 ? '#FFE45C' : '#fff');
+    }
+    // controle subindo (antes de ir para as mãos)
+    if (k < 0.7) {
+      const kk = suave(clamp(k / 0.7));
+      objs += controle(bx, lerp(by - 30, chao - 74 * 1.7 - 160, Math.sin(kk * Math.PI * 0.5)) + kk * kk * 100, 1.7 * (0.6 + 0.4 * kk), sw);
+    }
+  }
+
+  const [cx, cy, z] = camera(t);
+  let mundo = cenario(t) + borboleta(t) + vovo(V) + objs + algodao(A) + davi(D);
+  let s = `<g transform="translate(${W / 2} ${H / 2}) scale(${z}) translate(${-cx} ${-cy})">${mundo}</g>`;
+
+  // ---- título ----
+  if (t < E.titulo_fim + 0.1) {
+    const op = 1 - seg(t, E.titulo_fim - 0.6, E.titulo_fim);
+    const pop = t < 0.6 ? 1 + 0.25 * Math.sin(seg(t, 0, 0.6) * Math.PI) * (1 - seg(t, 0, .6)) : 1;
+    const ent = suave(seg(t, 0, 0.45));
+    s += `<g opacity="${op}"><rect width="${W}" height="${H}" fill="#FFF8E7" opacity=".55"/>
+      <g transform="translate(960 470) scale(${ent * pop})">
+        <text text-anchor="middle" font-family="Baloo" font-weight="800" font-size="170" fill="#FFD447" stroke="${OL}" stroke-width="16" stroke-linejoin="round" paint-order="stroke">O Primeiro Lugar</text>
+      </g>
+      <g transform="translate(960 600)" opacity="${seg(t, .4, .8)}">
+        <rect x="-170" y="-50" width="340" height="80" rx="40" fill="#2F62C9" ${contorno(7)}/>
+        <text text-anchor="middle" y="12" font-family="Baloo" font-weight="800" font-size="52" fill="#fff">Episódio 1</text>
+      </g></g>`;
+  }
+  // ---- fade final ----
+  const ff = seg(t, DADOS.fim - 0.9, DADOS.fim);
+  if (ff > 0) s += `<rect width="${W}" height="${H}" fill="#FFF8E7" opacity="${ff}"/>`;
+  document.getElementById('tela').innerHTML = s;
+}
+window.render = render;
+</script>
+</body></html>
