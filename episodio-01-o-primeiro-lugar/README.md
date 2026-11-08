@@ -1,8 +1,8 @@
-# Série infantil cristã: Episódio 1, "O Primeiro Lugar"
+# Série infantil cristã: Episódio 1, "Acima de Todas as Coisas"
 
-Animação 2D sobre o **1º mandamento** (Êxodo 20:3).
+Animação 2D sobre o **1º mandamento**: *amar a Deus acima de todas as coisas* (Mateus 22:37-38).
 
-- 🎬 **Cena de teste:** [`saida/cena-teste.mp4`](saida/cena-teste.mp4) (23 s, 1920×1080, com vozes, música e efeitos)
+- 🎬 **Cena de teste:** [`saida/cena-teste.mp4`](saida/cena-teste.mp4) (24 s, 1920×1080, com vozes, música e efeitos)
 - 📝 **Roteiro completo:** [`roteiro.md`](roteiro.md)
 - 🧒 **Personagens:** [`personagens.md`](personagens.md)
 

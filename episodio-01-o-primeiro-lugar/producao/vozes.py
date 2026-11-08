@@ -11,9 +11,10 @@ PROXY = os.environ.get("HTTPS_PROXY") or None
 # Elenco de vozes (ver README para o porquê de cada uma)
 VOZES = {
     # narradora: calma, acolhedora
-    "narradora": dict(voice="pt-BR-FranciscaNeural", rate="-5%", pitch="+0Hz", speed=1.0),
-    # Davi (7 anos): Thalita gravada mais lenta e acelerada depois -> sobe tom E timbre
-    "davi": dict(voice="pt-BR-ThalitaMultilingualNeural", rate="-15%", pitch="+0Hz", speed=1.18),
+    "narradora": dict(voice="pt-BR-ThalitaMultilingualNeural", rate="-5%", pitch="+0Hz", speed=1.0),
+    # Davi (7 anos): Francisca com tom mais agudo, SEM acelerar o áudio
+    # (acelerar deixava a fala com "sotaque japonês")
+    "davi": dict(voice="pt-BR-FranciscaNeural", rate="+5%", pitch="+30Hz", speed=1.0),
     # Vovô Elias: Antonio mais grave e pausado
     "vovo": dict(voice="pt-BR-AntonioNeural", rate="-12%", pitch="-12Hz", speed=1.0),
 }
@@ -21,7 +22,7 @@ VOZES = {
 FALAS = [
     ("n1", "narradora", "Era uma manhã ensolarada, e o Davi tinha acabado de ganhar um presente muito especial."),
     ("d1", "davi", "Uau! Um videogame novinho! Eu vou jogar o dia inteiro!"),
-    ("v1", "vovo", "Que presente bonito, Davi! Só não vá se esquecer do que é mais importante, hein?"),
+    ("v1", "vovo", "Que presente bonito, Davi! Só não vá se esquecer de quem a gente ama acima de todas as coisas, hein?"),
 ]
 
 

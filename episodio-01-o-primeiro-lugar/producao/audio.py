@@ -12,7 +12,7 @@ SR = 48000
 FPS = 24
 
 # ---------------- linha do tempo (segundos) ----------------
-FIM = 23.0
+FIM = 24.3
 FALAS = [  # (id, personagem, início)
     ("n1", "narradora", 2.8),
     ("d1", "davi", 9.3),

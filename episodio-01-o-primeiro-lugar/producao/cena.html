@@ -9,7 +9,7 @@ svg{display:block}
 <svg id="tela" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
 <script>
 /* =====================================================================
-   "O Primeiro Lugar" - cena de teste (estilo cartoon com contorno)
+   "Acima de Todas as Coisas" - cena de teste (estilo cartoon com contorno)
    render(t) desenha o quadro do instante t (segundos).
    window.DADOS vem de audio.py (linha do tempo + sincronia labial).
    ===================================================================== */
@@ -281,7 +281,7 @@ function estrela(x, y, r, rot, cor) {
 
 /* -------------------------------- câmera -------------------------------- */
 const CAM = [[0, 960, 540, 1], [2.6, 960, 540, 1], [7.4, 900, 560, 1.08], [9.0, 880, 600, 1.28], [13.6, 900, 600, 1.22],
-  [15.0, 1130, 560, 1.12], [21.5, 1130, 570, 1.16], [23, 1130, 570, 1.16]];
+  [15.0, 1130, 560, 1.12], [22.7, 1130, 570, 1.16], [24.3, 1130, 570, 1.16]];
 function camera(t) {
   let i = 0; while (i < CAM.length - 2 && t > CAM[i + 1][0]) i++;
   const [t0, x0, y0, z0] = CAM[i], [t1, x1, y1, z1] = CAM[i + 1];
@@ -314,7 +314,7 @@ function render(t) {
   if (t >= 11.2) { D.segura = 'controle'; D.bracoE = -24; D.bracoD = -24; D.pulo = -Math.abs(Math.sin((t - 11.2) * 6)) * 6 * (t < 13.5); D.olhar = [0.2, 0]; D.sobr = .4; }
   if (t >= E.balido && t < 15.0) { D.olhar = [-1, 0.3]; D.inclina = 6; D.pulo = 0; }
   if (t >= 15.0) { D.olhar = [1, -0.2]; D.inclina = -5 + Math.sin(t * 2) * 2; D.pulo = 0; D.sobr = 0.3; D.sorriso = 1.1; }
-  if (t >= 21.0) { D.inclina = -5 + Math.sin((t - 21) * 9) * 6 * (t < 22); }        // acena com a cabeça
+  if (t >= 22.4) { D.inclina = -5 + Math.sin((t - 22.4) * 9) * 6 * (t < 23.4); }        // acena com a cabeça
 
   // ---- Algodão ----
   const andaA = seg(t, 3.1, E.davi_chega + 0.4);
@@ -328,11 +328,11 @@ function render(t) {
   const V = { x: 1440, y: chao - 10, esc: 1.62, resp: Math.sin(t * 2) * 2, bracoE: 8, bracoD: 8, olhar: [-1, 0],
     pisca: piscar(t, 1.7), boca: boca('vovo', t), inclina: Math.sin(t * 1.1) * 2, sobr: 0 };
   if (t > 9.3 && t < 14.5) { V.inclina = 4; V.sobr = 0.6; }                           // achou graça
-  if (t >= 15.0 && t < 21.6) {                                                        // fala gesticulando
+  if (t >= 15.0 && t < 22.7) {                                                        // fala gesticulando
     V.bracoD = 30 + Math.max(0, Math.sin((t - 15) * 2.2)) * 35;
     V.inclina = -3 + Math.sin(t * 3) * 3;
   }
-  if (t >= 20.6 && t < 22.5) { V.sobr = 1; V.inclina = 8; }                           // "hein?"
+  if (t >= 21.9 && t < 23.8) { V.sobr = 1; V.inclina = 8; }                           // "hein?"
 
   // ---- objetos da caixa ----
   let objs = '';
@@ -368,7 +368,7 @@ function render(t) {
     const ent = suave(seg(t, 0, 0.45));
     s += `<g opacity="${op}"><rect width="${W}" height="${H}" fill="#FFF8E7" opacity=".55"/>
       <g transform="translate(960 470) scale(${ent * pop})">
-        <text text-anchor="middle" font-family="Baloo" font-weight="800" font-size="170" fill="#FFD447" stroke="${OL}" stroke-width="16" stroke-linejoin="round" paint-order="stroke">O Primeiro Lugar</text>
+        <text text-anchor="middle" font-family="Baloo" font-weight="800" font-size="132" fill="#FFD447" stroke="${OL}" stroke-width="14" stroke-linejoin="round" paint-order="stroke">Acima de Todas as Coisas</text>
       </g>
       <g transform="translate(960 600)" opacity="${seg(t, .4, .8)}">
         <rect x="-170" y="-50" width="340" height="80" rx="40" fill="#2F62C9" ${contorno(7)}/>
