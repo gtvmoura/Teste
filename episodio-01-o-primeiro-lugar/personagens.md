@@ -7,7 +7,9 @@ Estilo: **cartoon clássico com contorno**. O contorno é marrom-escuro e grosso
 | **Davi** | 7 anos, alegre, curioso e um pouco impulsivo. Tem bom coração, mas se distrai fácil. | Cabelo cacheado preto, camiseta laranja com uma cruz branca, short azul, tênis vermelhos. | Francisca com tom mais agudo (+30 Hz) e um pouco mais rápida (+5%). |
 | **Algodão** | Ovelhinha de estimação do Davi. Não fala, só bale. Fiel e brincalhona. | Lã branca em "nuvenzinhas", cara e patas marrom-escuro, topete de lã. | Balido sintetizado ("Béééé"). |
 | **Vovô Elias** | Avô do Davi. Sábio, paciente e brincalhão. Ensina com exemplos do dia a dia. | Careca com cabelo branco nas laterais, bigode branco, óculos redondos, cardigã verde. | Antonio, mais grave (−12 Hz) e pausado (−12%). |
-| **Mamãe Ana** | Mãe do Davi. Aparece pouco, quase sempre fora de cena. | *(a desenhar)* | Francisca ou Thalita, com voz normal. |
+| **Mamãe Ana** | Mãe do Davi. Carinhosa e paciente. | *(a desenhar)* | Francisca ou Thalita, com voz normal. |
+| **Lucas** | 8 anos, melhor amigo do Davi. Animado, adora futebol e é leal. | *(a desenhar)* | Antonio com tom agudo (a testar). |
+| **Marta, Maria e Jesus** | Personagens da história bíblica contada pelo Vovô (Lucas 10). | Estilo de livro ilustrado antigo, em tons de areia e terracota. *(a desenhar)* | A definir. |
 | **Narradora** | Conta a história. | — | Thalita (−5% de velocidade). |
 
 ### Por que esses nomes?

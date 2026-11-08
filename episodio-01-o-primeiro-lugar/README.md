@@ -2,8 +2,8 @@
 
 Animação 2D sobre o **1º mandamento**: *amar a Deus acima de todas as coisas* (Mateus 22:37-38).
 
-- 🎬 **Cena de teste:** [`saida/cena-teste.mp4`](saida/cena-teste.mp4) (24 s, 1920×1080, com vozes, música e efeitos)
-- 📝 **Roteiro completo:** [`roteiro.md`](roteiro.md)
+- 🎬 **Cena de teste:** [`saida/cena-teste.mp4`](saida/cena-teste.mp4) (cena 1, 24 s, 1920×1080, com vozes, música e efeitos)
+- 📝 **Roteiro completo (10 a 12 min, com a "Hora da Lição com o Vovô"):** [`roteiro.md`](roteiro.md)
 - 🧒 **Personagens:** [`personagens.md`](personagens.md)
 
 ## Como tudo é feito
