@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>@font-face{font-family:Baloo;src:url(../assets/baloo2-800.woff2) format('woff2');font-weight:800}
+html,body{margin:0;background:#FFF8E7}</style></head>
+<body><svg id="tela" width="1920" height="1180" viewBox="0 0 1920 1180" xmlns="http://www.w3.org/2000/svg"></svg>
+<script src="personagens.js"></script>
+<script>
+// Ficha de personagens para aprovação
+const nome = (x, y, t, sub, cor = OL) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="40" fill="${cor}">${t}</text>
+  <text x="${x}" y="${y + 34}" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="24" fill="${cor}" opacity=".65">${sub}</text>`;
+let s = `<defs><filter id="grao" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="5"/>
+  <feColorMatrix values="0 0 0 0 .4  0 0 0 0 .28  0 0 0 0 .15  0 0 0 .18 0"/></filter></defs>`;
+s += `<text x="960" y="78" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="56" fill="${OL}">Novos personagens: para aprovação</text>`;
+// painel cartoon
+s += `<rect x="40" y="120" width="900" height="1020" rx="30" fill="#CDEFFC" ${contorno(6)}/>
+  <path d="M43 860 Q490 820 937 860 V1110 Q937 1137 910 1137 H70 Q43 1137 43 1110 Z" fill="${COR.chao}"/>
+  <text x="490" y="180" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="34" fill="#2F62C9">Mundo do Davi (cartoon)</text>`;
+const pe = 960;
+s += davi({ t: 0, x: 200, y: pe, esc: 1.25, passo: 0, bracoE: 10, bracoD: 10, olhar: [0.4, 0], pisca: 0, boca: 0, inclina: 0 });
+s += mamae({ x: 480, y: pe, esc: 1.25, olhar: [0, 0], bracoE: 12, bracoD: 150 });
+s += lucas({ t: 0, x: 760, y: pe, esc: 1.3, passo: 0, bracoE: 150, bracoD: 10, olhar: [-0.4, 0], pisca: 0, boca: 0.0, sorriso: 1.2, inclina: 4, bola: true });
+s += nome(200, 1040, 'Davi', '(referência)') + nome(480, 1040, 'Mamãe Ana', 'mãe do Davi') + nome(770, 1040, 'Lucas', 'amigo, 8 anos');
+// painel bíblico
+s += `<rect x="980" y="120" width="900" height="1020" rx="30" fill="#EBD9B4" ${ctB(6)}/>
+  <path d="M983 860 Q1430 830 1877 860 V1110 Q1877 1137 1850 1137 H1010 Q983 1137 983 1110 Z" fill="#D8BC8A"/>
+  <circle cx="1760" cy="260" r="50" fill="#F4C76B" opacity=".8"/>
+  <path d="M1000 600 Q1100 520 1200 600 Q1250 560 1290 600" fill="none" stroke="${OLB}" stroke-width="3" opacity=".3"/>
+  <text x="1430" y="180" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="34" fill="#8B4A2B">História bíblica (livro antigo)</text>`;
+s += marta({ x: 1160, y: pe, esc: 1.32, bracoE: -38, bracoD: 20, olhar: [1, 0], bravo: true });
+s += jesus({ x: 1430, y: pe, esc: 1.4, bracoE: 40, bracoD: 40, olhar: [0, 0] });
+s += maria({ x: 1700, y: pe, esc: 1.32, bracoE: -30, bracoD: -30, olhar: [-0.6, -0.4] });
+s += `<rect x="980" y="120" width="900" height="1020" rx="30" filter="url(#grao)"/>`;
+s += nome(1160, 1040, 'Marta', 'ocupadíssima', '#5A3B28') + nome(1430, 1040, 'Jesus', 'calmo e acolhedor', '#5A3B28') + nome(1700, 1040, 'Maria', 'ouvindo com atenção', '#5A3B28');
+document.getElementById('tela').innerHTML = s;
+</script></body></html>
