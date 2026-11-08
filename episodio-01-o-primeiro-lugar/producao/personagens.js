@@ -32,7 +32,7 @@ function piscar(t, semente) {
 }
 
 /* ------------------------------- olhos e boca ------------------------------- */
-function olhosGrandes(cx, cy, r, look, fech, sw, sobr = 0) {
+function olhosGrandes(cx, cy, r, look, fech, sw, sobr = 0, triste = 0) {
   let s = '';
   for (const d of [-1, 1]) {
     const x = cx + d * r * 0.36, y = cy + r * 0.06;
@@ -48,7 +48,9 @@ function olhosGrandes(cx, cy, r, look, fech, sw, sobr = 0) {
     }
     // sobrancelha
     const by = y - ry - r * 0.12 - sobr * r * 0.12;
-    s += `<path d="M${x - rx * 0.9} ${by + d * 0} Q${x} ${by - r * 0.08} ${x + rx * 0.9} ${by}" fill="none" stroke="${OL}" stroke-width="${sw * 1.3}" stroke-linecap="round"/>`;
+    const yi = by - triste * r * 0.12, ye = by + triste * r * 0.04;   // triste>0: ponta de dentro sobe; <0: bravo
+    const yE = d < 0 ? ye : yi, yD = d < 0 ? yi : ye;
+    s += `<path d="M${x - rx * 0.9} ${yE} Q${x} ${(yE + yD) / 2 - r * 0.08} ${x + rx * 0.9} ${yD}" fill="none" stroke="${OL}" stroke-width="${sw * 1.3}" stroke-linecap="round"/>`;
   }
   return s;
 }
@@ -89,27 +91,41 @@ const VIS_DAVI = { pele: COR.pele, cabelo: COR.cabelo, camisa: COR.camisa, short
 function davi(p) { return crianca(p, VIS_DAVI); }
 function crianca(p, v) {
   const sw = 4.5, hr = 66, hy = -168;
-  let s = '';
-  // pernas
-  const pernas = [[-11, Math.sin(p.passo) * 0.45], [11, -Math.sin(p.passo) * 0.45]];
-  for (const [hx, a] of pernas) {
-    const fx = hx + Math.sin(a) * 44, fy = -52 + Math.cos(a) * 44;
-    s += membro(hx, -52, fx, fy - 4, 15, v.pele, sw);
-    s += `<ellipse cx="${fx + (hx < 0 ? -4 : 4)}" cy="${fy}" rx="16" ry="8" fill="${v.tenis}" ${contorno(sw)}/>`;
+  const pose = p.pose || 'pe';
+  const dy = pose === 'sentado' ? 44 : pose === 'ajoelhado' ? 30 : 0;   // quanto o corpo desce
+  let s = '', pernasFrente = '';
+  if (pose === 'pe') {
+    const pernas = [[-11, Math.sin(p.passo || 0) * 0.45], [11, -Math.sin(p.passo || 0) * 0.45]];
+    for (const [hx, a] of pernas) {
+      const fx = hx + Math.sin(a) * 44, fy = -52 + Math.cos(a) * 44;
+      s += membro(hx, -52, fx, fy - 4, 15, v.pele, sw);
+      s += `<ellipse cx="${fx + (hx < 0 ? -4 : 4)}" cy="${fy}" rx="16" ry="8" fill="${v.tenis}" ${contorno(sw)}/>`;
+    }
+  } else if (pose === 'sentado') {        // pernas cruzadas no chão (desenhadas na frente do short)
+    for (const d of [-1, 1]) {
+      pernasFrente += membro(d * 14, -10, d * 60, -8, 16, v.pele, sw) + membro(d * 60, -8, -d * 8, 2, 15, v.pele, sw);
+      pernasFrente += `<ellipse cx="${-d * 14}" cy="4" rx="14" ry="8" fill="${v.tenis}" ${contorno(sw)}/>`;
+    }
+  } else {                                 // ajoelhado: tênis atrás, joelhos no chão
+    for (const d of [-1, 1]) s += `<ellipse cx="${d * 30}" cy="-6" rx="13" ry="7" fill="${v.tenis}" ${contorno(sw)}/>`;
+    for (const d of [-1, 1]) pernasFrente += membro(d * 11, -22, d * 15, -6, 16, v.pele, sw);
   }
-  s += `<path d="M-32 -66 H32 V-34 H6 L0 -44 L-6 -34 H-32 Z" fill="${v.short}" ${contorno(sw)}/>`;
+  // short (desce conforme a pose); pernas da frente ficam por cima dele
+  s += `<g transform="translate(0 ${dy})"><path d="M-32 -66 H32 V-34 H6 L0 -44 L-6 -34 H-32 Z" fill="${v.short}" ${contorno(sw)}/></g>` + pernasFrente;
+  let u = '';   // tronco, braços e cabeça
   const braco = (lado, ang) => {
     const ox = lado * 34, oy = -106, L = 54;
     const hx = ox + lado * Math.sin(rad(ang)) * L, hyy = oy + Math.cos(rad(ang)) * L;
     return { svg: membro(ox, oy, hx, hyy, 14, v.pele, sw) + `<circle cx="${hx}" cy="${hyy}" r="9.5" fill="${v.pele}" ${contorno(sw)}/>`, x: hx, y: hyy };
   };
-  const bE = braco(-1, p.bracoE), bD = braco(1, p.bracoD);
-  // tronco
-  s += `<path d="M-34 -116 Q0 -126 34 -116 L40 -56 Q0 -49 -40 -56 Z" fill="${v.camisa}" ${contorno(sw)}/>`;
-  if (v.estampa === 'cruz') s += `<path d="M-11 -92 h22 M0 -105 v32" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
-  if (v.estampa === '10') s += `<path d="M-14 -119 Q0 -108 14 -119" fill="none" stroke="#fff" stroke-width="5"/><text x="0" y="-70" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="34" fill="#fff" stroke="${OL}" stroke-width="3" paint-order="stroke">10</text>`;
+  const bE = braco(-1, p.bracoE ?? 10), bD = braco(1, p.bracoD ?? 10);
+  u += `<path d="M-34 -116 Q0 -126 34 -116 L40 -56 Q0 -49 -40 -56 Z" fill="${v.camisa}" ${contorno(sw)}/>`;
+  if (v.estampa === 'cruz') u += `<path d="M-11 -92 h22 M0 -105 v32" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
+  if (v.estampa === '10') u += `<path d="M-14 -119 Q0 -108 14 -119" fill="none" stroke="#fff" stroke-width="5"/><text x="0" y="-70" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="34" fill="#fff" stroke="${OL}" stroke-width="3" paint-order="stroke">10</text>`;
   const mangas = `<circle cx="-34" cy="-108" r="12" fill="${v.camisa}" ${contorno(sw)}/><circle cx="34" cy="-108" r="12" fill="${v.camisa}" ${contorno(sw)}/>`;
-  if (!p.bracosCima) s += bE.svg + bD.svg + mangas;
+  if (p.segura === 'algodao') u += algodao({ x: -16, y: -14, esc: 1.05, passo: 0, pisca: p.piscaA || 0, boca: p.bocaA || 0, inclina: -8 });
+  if (p.segura === 'biblia') u += `<g transform="translate(0 -70)"><rect x="-30" y="-20" width="60" height="40" rx="5" fill="#8B4513" ${contorno(sw)}/><path d="M0 -14 V14 M-8 -4 H8" stroke="#FFD447" stroke-width="4"/></g>`;
+  if (!p.bracosCima) u += bE.svg + bD.svg + mangas;
   // cabeça
   let c = '';
   c += `<circle cx="${-hr * 0.98}" cy="${hy + hr * .1}" r="${hr * .2}" fill="${v.pele}" ${contorno(sw)}/>`;
@@ -125,26 +141,35 @@ function crianca(p, v) {
   }
   if (v.sardas) for (const d of [-1, 1]) for (const [ox, oy] of [[0, 0], [9, 5], [-8, 6], [3, 11]])
     c += `<circle cx="${d * (hr * .5 + ox)}" cy="${hy + hr * .26 + oy}" r="2.4" fill="#A0522D" opacity=".7"/>`;
-  c += olhosGrandes(0, hy, hr, p.olhar, p.pisca, sw, p.sobr || 0);
+  const sono = p.sono || 0;
+  if (sono > 0) for (const d of [-1, 1]) c += `<path d="M${d * hr * .36 - 13} ${hy + hr * .34} q13 ${8} 26 0" fill="none" stroke="#6A4C93" stroke-width="4" opacity="${.6 * sono}"/>`;
+  c += olhosGrandes(0, hy, hr, p.olhar || [0, 0], Math.max(p.pisca || 0, sono * 0.5, p.olhosFechados ? 1 : 0), sw, p.sobr || 0, p.triste || 0);
+  if (p.lagrima) { const k = p.lagrima % 1, x = -hr * .42, y = hy + hr * .3 + k * hr * .5;
+    c += `<path d="M${x} ${y - 10} Q${x + 8} ${y + 2} ${x} ${y + 6} Q${x - 8} ${y + 2} ${x} ${y - 10}Z" fill="#7FD0FF" ${contorno(2.5)} opacity="${1 - k * .6}"/>`; }
   for (const d of [-1, 1]) c += `<circle cx="${d * hr * .58}" cy="${hy + hr * .34}" r="${hr * .13}" fill="#ff7b7b" opacity=".45"/>`;
-  c += bocaCartoon(0, hy + hr * 0.44, hr, p.boca, sw, p.t, p.sorriso ?? 1);
-  s += `<g transform="rotate(${p.inclina || 0} 0 -110)">${c}</g>`;
-  if (p.bracosCima) s += bE.svg + bD.svg + mangas;
-  // objeto nas mãos
-  if (p.segura === 'caixa') s += caixa(0, -48, 1, sw, true, p.caixaRot || 0);
-  if (p.segura === 'controle') s += controle(0, -74, 1, sw);
-  if (p.segura === 'controleCima') s += controle(bD.x + 6, bD.y - 10, 0.9, sw);
-  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.pulo || 0})">${s}</g>`;
+  c += bocaCartoon(0, hy + hr * 0.44, hr, p.boca || 0, sw, p.t || 0, p.sorriso ?? 1);
+  u += `<g transform="rotate(${p.inclina || 0} 0 -110)">${c}</g>`;
+  if (p.bracosCima) u += bE.svg + bD.svg + mangas;
+  if (p.segura === 'caixa') u += caixa(0, -48, 1, sw, true, p.caixaRot || 0);
+  if (p.segura === 'controle') u += controle(0, -74, 1, sw);
+  if (p.segura === 'controleCima') u += controle(bD.x + 6, bD.y - 10, 0.9, sw);
+  if (p.segura === 'bolinha') u += `<circle cx="${bD.x + 6}" cy="${bD.y - 4}" r="14" fill="#FF5A5A" ${contorno(sw)}/>`;
+  s += `<g transform="translate(0 ${dy})">${u}</g>`;
+  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) scale(${p.vira || 1} 1) translate(0 ${p.pulo || 0})">${s}</g>`;
 }
 
 /* ---------------------------------- Vovô ---------------------------------- */
 function vovo(p) {
   const sw = 4.5, hr = 58, hy = -300;
   let s = '';
+  const sent = p.pose === 'sentado', dy = sent ? 26 : 0;
+  let pernas = '';
   for (const d of [-1, 1]) {
-    s += membro(d * 17, -118, d * 19, -16, 28, COR.calca, sw);
-    s += `<ellipse cx="${d * 24}" cy="-10" rx="24" ry="11" fill="${COR.sapato}" ${contorno(sw)}/>`;
+    if (sent) pernas += membro(d * 26, -78, d * 28, -16, 28, COR.calca, sw) + `<ellipse cx="${d * 26}" cy="-84" rx="24" ry="20" fill="${COR.calca}" ${contorno(sw)}/>`;
+    else pernas += membro(d * 17, -118, d * 19, -16, 28, COR.calca, sw);
+    pernas += `<ellipse cx="${d * (sent ? 32 : 24)}" cy="-10" rx="24" ry="11" fill="${COR.sapato}" ${contorno(sw)}/>`;
   }
+  if (!sent) s += pernas;
   s += `<path d="M-50 -250 Q0 -262 50 -250 L60 -112 Q0 -100 -60 -112 Z" fill="${COR.cardiga}" ${contorno(sw)}/>`;
   s += `<path d="M-18 -254 L0 -214 L18 -254 Z" fill="#fff" ${contorno(sw * 0.8)}/>`;
   for (const y of [-192, -164, -136]) s += `<circle cx="0" cy="${y}" r="5" fill="#E9D8A6" ${contorno(2.5)}/>`;
@@ -183,6 +208,7 @@ function vovo(p) {
   c += `<path d="M0 ${hy + 22} Q-14 ${hy + 16} -30 ${hy + 26} Q-24 ${hy + 36} -10 ${hy + 32} Q-4 ${hy + 30} 0 ${hy + 26} Q4 ${hy + 30} 10 ${hy + 32} Q24 ${hy + 36} 30 ${hy + 26} Q14 ${hy + 16} 0 ${hy + 22} Z" fill="#F7F7F7" ${contorno(sw * 0.8)}/>`;
   for (const d of [-1, 1]) c += `<circle cx="${d * 36}" cy="${hy + 22}" r="8" fill="#ff7b7b" opacity=".35"/>`;
   s += `<g transform="rotate(${p.inclina || 0} 0 -250)">${c}</g>`;
+  if (sent) s = `<g transform="translate(0 ${dy})">${s}</g>` + pernas;   // joelhos na frente do corpo
   return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.resp || 0})">${s}</g>`;
 }
 
@@ -204,7 +230,7 @@ function algodao(p) {
   else c += `<circle cx="48" cy="-64" r="5" fill="#fff"/><circle cx="49.5" cy="-64" r="2.6" fill="#111"/>`;
   if (p.boca > 0.1) c += `<ellipse cx="50" cy="-50" rx="5" ry="${3 + 4 * p.boca}" fill="#c0392b" stroke="#fff" stroke-width="1.5"/>`;
   s += `<g transform="rotate(${p.inclina || 0} 34 -55)">${c}</g>`;
-  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) translate(0 ${p.pulo || 0})">${s}</g>`;
+  return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) scale(${p.vira || 1} 1) translate(0 ${p.pulo || 0})">${s}</g>`;
 }
 
 
@@ -293,11 +319,17 @@ function biblico(p, v) {
   // cabelo de trás / véu de trás
   if (v.cabeloTras) s += `<path d="M${-hr * 1.05} ${hy - 6} Q${-hr * 1.15} ${hy + 60} ${-hr * .85} ${hy + 78} H${hr * .85} Q${hr * 1.15} ${hy + 60} ${hr * 1.05} ${hy - 6} Z" fill="${v.cabeloTras}" ${ctB(sw)}/>`;
   if (v.veu) s += `<path d="M${-hr * 1.25} ${hy - 20} Q${-hr * 1.5} ${hy + 80} ${-hr * 1.35} ${hy + 120} L${hr * 1.35} ${hy + 120} Q${hr * 1.5} ${hy + 80} ${hr * 1.25} ${hy - 20} Z" fill="${v.veu}" ${ctB(sw)}/>`;
-  // pés com sandálias
-  for (const d of [-1, 1]) s += `<ellipse cx="${d * 22}" cy="-7" rx="16" ry="7" fill="${v.pele}" ${ctB(sw)}/><path d="M${d * 22 - 10} -9 h20" stroke="#8B5A2B" stroke-width="4"/>`;
-  // túnica
-  s += `<path d="M-40 -270 Q0 -280 40 -270 Q58 -262 60 -240 L74 -18 Q0 -6 -74 -18 L-60 -240 Q-58 -262 -40 -270 Z" fill="${v.tunica}" ${ctB(sw)}/>`;
-  s += `<path d="M-30 -60 Q-34 -150 -24 -230 M26 -40 Q34 -140 22 -230" fill="none" stroke="${OLB}" stroke-width="1.6" opacity=".35"/>`; // dobras
+  // sentado: 'chao' (Maria aos pés de Jesus) ou 'banco' (Jesus ensinando)
+  const dy = p.sentado === 'chao' ? 150 : p.sentado === 'banco' ? 84 : 0;
+  const tras = s; s = '';
+  let pes = '';
+  for (const d of [-1, 1]) pes += `<ellipse cx="${d * (dy ? 34 : 22)}" cy="-7" rx="16" ry="7" fill="${v.pele}" ${ctB(sw)}/><path d="M${d * (dy ? 34 : 22) - 10} -9 h20" stroke="#8B5A2B" stroke-width="4"/>`;
+  let tun;
+  if (!dy) tun = `<path d="M-40 -270 Q0 -280 40 -270 Q58 -262 60 -240 L74 -18 Q0 -6 -74 -18 L-60 -240 Q-58 -262 -40 -270 Z" fill="${v.tunica}" ${ctB(sw)}/>` +
+    `<path d="M-30 -60 Q-34 -150 -24 -230 M26 -40 Q34 -140 22 -230" fill="none" stroke="${OLB}" stroke-width="1.6" opacity=".35"/>`;
+  else { const hw = p.sentado === 'chao' ? 100 : 82, top = -270 + dy;
+    tun = `<path d="M-40 ${top} Q0 ${top - 10} 40 ${top} Q58 ${top + 8} 60 ${top + 30} L${hw} -18 Q0 -4 ${-hw} -18 L-60 ${top + 30} Q-58 ${top + 8} -40 ${top} Z" fill="${v.tunica}" ${ctB(sw)}/>` +
+      `<path d="M${-hw + 14} -40 Q-30 -60 0 -46 Q30 -60 ${hw - 14} -40" fill="none" stroke="${OLB}" stroke-width="2.4" opacity=".5"/>`; }
   if (v.avental) s += `<path d="M-38 -190 H38 L44 -60 Q0 -52 -44 -60 Z" fill="${v.avental}" ${ctB(sw)}/><path d="M-48 -192 H48" stroke="${v.faixa || '#8B5A2B'}" stroke-width="8"/><circle cx="-14" cy="-130" r="6" fill="#C9A27A" opacity=".6"/><circle cx="12" cy="-100" r="4" fill="#C9A27A" opacity=".6"/>`;
   if (v.manto) s += `<path d="M-46 -262 Q-20 -270 4 -258 L64 -120 Q56 -96 34 -92 L-30 -230 Z" fill="${v.manto}" ${ctB(sw)}/>`;
   if (v.faixa && !v.avental) s += `<path d="M-58 -150 Q0 -140 58 -150" fill="none" stroke="${v.faixa}" stroke-width="10"/>`;
@@ -330,6 +362,7 @@ function biblico(p, v) {
   else if (v.barba) s += `<path d="M-15 ${my - 2} Q0 ${my + 14} 15 ${my - 2} Q0 ${my + 4} -15 ${my - 2} Z" fill="#fff" ${ctB(2.5)}/>`;
   else s += `<path d="M-12 ${my} Q0 ${my + 9} 12 ${my}" fill="none" ${ctB(3)}/>`;
   if (v.barba) s += `<path d="M-14 ${my - 5} Q-6 ${my - 10} 0 ${my - 6} Q6 ${my - 10} 14 ${my - 5}" fill="none" stroke="${v.barba}" stroke-width="5" stroke-linecap="round"/>`;
+  s = (dy ? `<g transform="translate(0 ${dy})">${tras}</g>` : tras) + pes + tun + (dy ? `<g transform="translate(0 ${dy})">${s}</g>` : s);
   return `<g transform="translate(${p.x} ${p.y}) scale(${p.esc}) rotate(${p.inclina || 0} 0 -150)">${s}</g>`;
 }
 

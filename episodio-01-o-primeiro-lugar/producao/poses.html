@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:Baloo;src:url(../assets/baloo2-800.woff2) format('woff2');font-weight:800}html,body{margin:0;background:#FFF8E7}</style></head>
+<body><svg id="tela" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+<script src="personagens.js"></script><script>
+// Folha de poses e expressões (conferência)
+const b = { t: 0, passo: 0, pisca: 0, boca: 0, inclina: 0, olhar: [0, 0], esc: 1.15 };
+let s = `<rect width="1920" height="1080" fill="#FFF8E7"/><path d="M0 500 H1920 M0 1000 H1920" stroke="#ddd" stroke-width="3"/>`;
+const L = (x, y, t) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Baloo" font-weight="800" font-size="26" fill="${OL}">${t}</text>`;
+s += davi({ ...b, x: 130, y: 460, pose: 'sentado', segura: 'controle', bracoE: -24, bracoD: -24, sono: 1, olhar: [0, -0.5] }) + L(130, 495, 'sentado jogando (sono)');
+s += davi({ ...b, x: 400, y: 460, pose: 'ajoelhado', bracoE: -30, bracoD: -30, olhosFechados: 1, triste: 1, sorriso: -0.4 }) + L(400, 495, 'ajoelhado orando');
+s += davi({ ...b, x: 660, y: 460, segura: 'algodao', bracoE: -55, bracoD: -55, olhosFechados: 1, sorriso: 1.3 }) + L(660, 495, 'abraçando o Algodão');
+s += davi({ ...b, x: 920, y: 460, triste: 1, sorriso: -0.8, lagrima: 0.4, olhar: [0, 0.5] }) + L(920, 495, 'chorando');
+s += davi({ ...b, x: 1180, y: 460, triste: -1, sorriso: -0.3, olhar: [0.8, 0], boca: 0.4, t: 1 }) + L(1180, 495, 'contrariado');
+s += davi({ ...b, x: 1440, y: 460, pose: 'ajoelhado', segura: 'biblia', bracoE: -30, bracoD: -30, sorriso: 1.2 }) + L(1440, 495, 'ajoelhado c/ Bíblia');
+s += algodao({ ...b, x: 1720, y: 440, esc: 1.4, vira: -1 }) + L(1720, 495, 'Algodão virada');
+s += vovo({ x: 220, y: 960, esc: 1.0, pose: 'sentado', bracoE: 8, bracoD: 30, olhar: [1, 0], pisca: 0, boca: 0 }) + L(220, 995, 'Vovô sentado');
+s += mamae({ x: 520, y: 960, esc: 1.0, bracoE: 12, bracoD: 12 }) + L(520, 995, 'Mamãe');
+s += lucas({ ...b, x: 780, y: 960, bracoE: 10, bracoD: 10, triste: 1, sorriso: -0.5 }) + L(780, 995, 'Lucas triste');
+s += jesus({ x: 1150, y: 960, esc: 1.0, sentado: 'banco', bracoE: 30, bracoD: 20 }) + L(1150, 995, 'Jesus sentado');
+s += maria({ x: 1420, y: 960, esc: 1.0, sentado: 'chao', bracoE: -30, bracoD: -30, olhar: [-0.5, -1] }) + L(1420, 995, 'Maria sentada');
+s += marta({ x: 1720, y: 960, esc: 1.0, bracoE: -38, bracoD: 60, bravo: true, boca: .6 }) + L(1720, 995, 'Marta reclamando');
+document.getElementById('tela').innerHTML = s;
+</script></body></html>
