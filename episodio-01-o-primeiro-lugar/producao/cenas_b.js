@@ -58,7 +58,7 @@ function varandaCena(t, o = {}) {
   return m;
 }
 const fala2 = (quem, t) => Object.entries(DADOS.t).some(([id, [a, b]]) => DADOS.quem[id] === quem && t >= a && t < b);
-const ALVOS_VAR = { vovo: [1250, 680, 1.45], davi: [800, 740, 1.45] };
+const ALVOS_VAR = { vovo: [1170, 680, 1.4], davi: [820, 740, 1.45] };
 function banquinho(x, y) { return `<rect x="${x - 70}" y="${y - 120}" width="140" height="22" rx="6" fill="#8B5A2B" ${ctB(3.5)}/><rect x="${x - 60}" y="${y - 100}" width="16" height="100" fill="#8B5A2B" ${ctB(3)}/><rect x="${x + 44}" y="${y - 100}" width="16" height="100" fill="#8B5A2B" ${ctB(3)}/>`; }
 function betaniaCena(t) {
   const bt = ini('betania'), se = ini('senta'), cr = ini('correria'), ms = ini('martaSenta');
@@ -118,23 +118,23 @@ function poteInsert(t) {
   s += `<rect width="${W}" height="${H}" fill="#24356B"/><circle cx="960" cy="200" r="700" fill="#FFE7A0" opacity=".12"/>`;
   s += `<rect y="860" width="${W}" height="220" fill="#8B5A2B" ${contorno(8)}/>`;
   const fase2 = t >= ini('esvazia');
-  const PED = [['#FF8FB1', 820, 0], ['#7FB3FF', 900, 1], ['#9BE07B', 980, 2], ['#FFB347', 1060, 3], ['#C59BFF', 1120, 4], ['#FF6B6B', 860, 5]];
+  const PED = [['#FF8FB1', 800, 0], ['#7FB3FF', 1110, 1], ['#9BE07B', 960, 2], ['#FFB347', 850, 3], ['#C59BFF', 1070, 4], ['#FF6B6B', 960, 5]];
   let dentro = '';
   // ----- primeira tentativa: areia e pedrinhas primeiro
   let opA = 1 - prog(t, ini('esvazia'), .9), quedaA = prog(t, ini('esvazia'), .9) * 300;
   if (!fase2 || opA > 0) {
-    const nivel = lerp(cy + R * .95, cy + 40, prog(t, ini('areia'), 2.2));
+    const nivel = lerp(cy + R * .95, cy - 20, prog(t, ini('areia'), 2.2));
     if (t >= ini('areia')) dentro += `<rect x="${cx - R * 1.5}" y="${nivel + quedaA}" width="${R * 3}" height="${R * 2}" fill="#F2D38B" opacity="${opA}"/>`;
     if (t >= ini('areia') && t < ini('areia') + 2.2) s += `<rect x="${cx - 14}" y="0" width="28" height="${nivel}" fill="#F2D38B" opacity=".9"/>`;
     PED.forEach(([c, x, i]) => { const a = ini('pedrinhas') + i * .17, k = prog(t, a, .35);
-      if (t >= a) dentro += `<ellipse cx="${x}" cy="${lerp(-100, cy + 10 - (i % 3) * 70, k) + quedaA}" rx="46" ry="34" fill="${c}" ${contorno(6)} opacity="${opA}"/>`; });
+      if (t >= a) dentro += `<ellipse cx="${x}" cy="${lerp(-100, [470, 470, 470, 335, 335, 405][i], k) + quedaA}" rx="46" ry="34" fill="${c}" ${contorno(6)} opacity="${opA}"/>`; });
   }
   // ----- segunda tentativa: pedra dourada primeiro
   if (fase2) {
     PED.forEach(([c, x, i]) => { const a = ini('pedrinhas2') + i * .17, k = prog(t, a, .35);
-      const alvo = [[800, 700], [1120, 700], [860, 560], [1060, 560], [960, 420], [760, 560]][i];
+      const alvo = [[800, 660], [1120, 660], [850, 560], [1070, 560], [960, 560], [740, 560]][i];
       if (t >= a) dentro += `<ellipse cx="${alvo[0]}" cy="${lerp(-100, alvo[1], k)}" rx="46" ry="34" fill="${c}" ${contorno(6)}/>`; });
-    const nivel2 = lerp(cy + R * .95, cy - 40, prog(t, ini('areia2'), 2.4));
+    const nivel2 = lerp(cy + R * .95, cy - 10, prog(t, ini('areia2'), 2.4));
     if (t >= ini('areia2')) dentro = `<rect x="${cx - R * 1.5}" y="${nivel2}" width="${R * 3}" height="${R * 2}" fill="#F2D38B"/>` + dentro;
     if (t >= ini('areia2') && t < ini('areia2') + 2.4) s += `<rect x="${cx - 14}" y="0" width="28" height="${nivel2}" fill="#F2D38B" opacity=".9"/>`;
   }

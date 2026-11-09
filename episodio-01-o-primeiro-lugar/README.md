@@ -1,33 +1,53 @@
-# Série infantil cristã: Episódio 1, "Acima de Todas as Coisas"
+# Série "No Quintal do Vovô": Episódio 1, "Acima de Todas as Coisas"
 
-Animação 2D sobre o **1º mandamento**: *amar a Deus acima de todas as coisas* (Mateus 22:37-38).
+Animação 2D infantil sobre o **1º mandamento**: *amar a Deus acima de todas as coisas* (Mateus 22:37-38).
 
-- 🎬 **Cena de teste:** [`saida/cena-teste.mp4`](saida/cena-teste.mp4) (cena 1, 24 s, 1920×1080, com vozes, música e efeitos)
-- 📝 **Roteiro completo (10 a 12 min, com a "Hora da Lição com o Vovô"):** [`roteiro.md`](roteiro.md)
-- 🧒 **Personagens:** [`personagens.md`](personagens.md)
+- 🎬 **Episódio completo:** cerca de 10min45s, 1920×1080, 24 fps, com vozes, música e efeitos (veja "Gerar o episódio" abaixo)
+- 📝 **Roteiro:** [`roteiro.md`](roteiro.md)
+- 🧒 **Personagens:** [`personagens.md`](personagens.md) · [ficha](saida/ficha-personagens.png) · [cenários](saida/cenarios.png)
+
+## Cenas
+| # | Cena | Duração |
+|---|---|---|
+| 0 | Abertura (música-tema com letra para cantar junto) | 0:31 |
+| 1 | O presente | 0:28 |
+| 2 | Dia após dia | 0:59 |
+| 3 | O convite do Lucas | 0:36 |
+| 4 | Cadê o Algodão? | 0:30 |
+| 5 | A oração no morro | 0:50 |
+| 6 | Marta e Maria (história bíblica, Lucas 10) | 1:21 |
+| 7 | O pote do coração | 1:33 |
+| 8 | Um novo dia | 0:38 |
+| 9 | Hora da Lição com o Vovô | 3:04 |
+| 10 | Encerramento | 0:14 |
 
 ## Como tudo é feito
-Tudo é gerado por código e com ferramentas gratuitas:
+Tudo é gerado por código, com ferramentas gratuitas:
 
 | Etapa | Arquivo | Ferramenta |
 |---|---|---|
-| Vozes | `producao/vozes.py` | [edge-tts](https://github.com/rany2/edge-tts) (vozes neurais do Microsoft Edge) + ffmpeg |
-| Música, efeitos e sincronia labial | `producao/audio.py` | Python + numpy (ukulele e sininhos sintetizados) |
-| Desenho e animação | `producao/cena.html` | SVG + JavaScript: cada personagem é um "boneco articulado" |
-| Quadros e vídeo final | `producao/render.js` | Playwright (Chromium) + ffmpeg (H.264, 24 fps) |
+| Roteiro em dados (falas, pausas, efeitos, trilhas) | `producao/episodio.py` | Python |
+| Vozes, trilha por clima, efeitos e sincronia labial | `producao/producao.py` (+ `audio.py`) | [edge-tts](https://github.com/rany2/edge-tts) + numpy (ukulele, sinos, harpa, grilos, vento, riacho… tudo sintetizado) |
+| Personagens (bonecos articulados SVG) | `producao/personagens.js` | JavaScript/SVG |
+| Cenários | `producao/cenarios.js` | JavaScript/SVG |
+| Animação de cada cena | `producao/cenas_a.js`, `cenas_b.js`, `cenas_c.js` + `motor.js` | JavaScript/SVG |
+| Quadros e vídeo | `producao/render_cena.js`, `juntar.sh` | Playwright (Chromium) + ffmpeg (H.264) |
 
-## Gerar o vídeo de novo
+## Gerar o episódio
 ```bash
 pip install edge-tts numpy
 cd producao
-python3 vozes.py /tmp/ep1/vozes   # gera as falas
-python3 audio.py /tmp/ep1         # mixa áudio e calcula a boca de cada quadro
-node render.js /tmp/ep1 ../saida/cena-teste.mp4
-# Prévia rápida (só imagens):  node render.js /tmp/ep1 --previa 5,10,15
+python3 producao.py /tmp/ep                 # vozes + áudio + dados de todas as cenas
+for c in c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10; do node render_cena.js /tmp/ep $c video; done
+./juntar.sh /tmp/ep ../saida/episodio-01.mp4
+# Prévia de uma cena (folha de contato): node render_cena.js /tmp/ep c5 previa
 ```
-Para mudar uma fala, edite `FALAS` em `vozes.py`. Para mudar os tempos, edite `FALAS`/`EVENTOS` em `audio.py`.
+- Para mudar uma fala ou um tempo, edite `episodio.py` e rode `producao.py` de novo. A animação se ajusta sozinha à nova duração.
+- Prévias auxiliares: `ficha.html` (personagens), `cenarios.html` (cenários), `poses.html` (poses e expressões).
 
 ## Observações
 - **Vozes:** o edge-tts é gratuito, mas não é um serviço oficial. Para um canal monetizado, use o **Azure Speech** (mesmas vozes, oficial, com cota grátis mensal) ou grave vozes humanas.
+- **Música e efeitos:** compostos e sintetizados no próprio código. Não há uso de material de terceiros.
 - **Fonte:** Baloo 2 (SIL Open Font License), em `assets/`.
 - Revise o conteúdo bíblico com um pastor ou professor antes de publicar.
+- `cena.html`, `render.js`, `audio.py` e `vozes.py` são da cena de teste original (`saida/cena-teste.mp4`).
