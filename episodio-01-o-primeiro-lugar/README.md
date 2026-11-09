@@ -2,7 +2,7 @@
 
 Animação 2D infantil sobre o **1º mandamento**: *amar a Deus acima de todas as coisas* (Mateus 22:37-38).
 
-- 🎬 **Episódio completo:** cerca de 10min45s, 1920×1080, 24 fps, com vozes, música e efeitos (veja "Gerar o episódio" abaixo)
+- 🎬 **Episódio completo:** [`saida/episodio-01.mp4`](saida/episodio-01.mp4) (10min45s, 1920×1080, 24 fps, com vozes, música e efeitos)
 - 📝 **Roteiro:** [`roteiro.md`](roteiro.md)
 - 🧒 **Personagens:** [`personagens.md`](personagens.md) · [ficha](saida/ficha-personagens.png) · [cenários](saida/cenarios.png)
 
