@@ -46,7 +46,6 @@ function quarto(t, op = {}) {
   s += `<rect x="1090" y="640" width="150" height="160" rx="10" fill="#C9874A" ${contorno(sw)}/><rect x="1110" y="690" width="110" height="10" rx="5" fill="${OL}" opacity=".5"/>
     <rect x="1112" y="610" width="80" height="30" rx="5" fill="#8B4513" ${contorno(5)}/><path d="M1152 614 V636 M1144 622 H1160" stroke="#FFD447" stroke-width="4"/>
     <path d="M1205 640 V560" stroke="${OL}" stroke-width="6"/><path d="M1175 560 L1235 560 L1222 510 L1188 510 Z" fill="#FFE082" ${contorno(5)}/>`;
-  if (noite) s += `<circle cx="1205" cy="545" r="160" fill="#FFE9A0" opacity=".25"/>`;
   // cama
   s += `<rect x="1300" y="470" width="40" height="340" rx="10" fill="#2F62C9" ${contorno(sw)}/>
     <rect x="1300" y="660" width="560" height="110" rx="16" fill="#fff" ${contorno(sw)}/>
@@ -54,7 +53,8 @@ function quarto(t, op = {}) {
     <path d="M1470 640 H1860 V780 H1470 Q1450 710 1470 640Z" fill="#FF7A1A" ${contorno(sw)}/>
     ${[1540, 1640, 1740].map(x => `<path d="M${x} 640 V780" stroke="#FFD447" stroke-width="10"/>`).join('')}
     <rect x="1320" y="770" width="24" height="50" fill="#2F62C9" ${contorno(5)}/><rect x="1820" y="770" width="24" height="50" fill="#2F62C9" ${contorno(5)}/>`;
-  if (noite) s += `<rect x="-400" y="-300" width="2720" height="1700" fill="#0B1640" opacity=".35"/>`;
+  if (noite) s += `<defs><radialGradient id="abaj"><stop offset="0" stop-color="#FFE9A0" stop-opacity=".7"/><stop offset="1" stop-color="#FFE9A0" stop-opacity="0"/></radialGradient></defs>`
+    + `<rect x="-400" y="-300" width="2720" height="1700" fill="#0B1640" opacity=".35"/><circle cx="1205" cy="540" r="260" fill="url(#abaj)"/>`;
   return s;
 }
 
@@ -152,3 +152,77 @@ function betania(t) {
   s += `<rect x="-400" y="-300" width="2720" height="1700" filter="url(#graoB)"/>`;
   return s;
 }
+
+/* ---------------------------- quintal do Vovô ---------------------------- */
+/* --------------------------------- cenário --------------------------------- */
+function quintal(t, op = {}) {
+  const sw = 7;
+  let s = '';
+  s += `<defs><linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${COR.ceu1}"/><stop offset="1" stop-color="${COR.ceu2}"/></linearGradient></defs>`;
+  s += `<rect x="-800" y="-400" width="3520" height="1900" fill="url(#ceu)"/>`;
+  // sol com raios girando
+  let raios = '';
+  for (let i = 0; i < 12; i++) raios += `<rect x="-7" y="-128" width="14" height="34" rx="7" fill="#FFE27A" transform="rotate(${i * 30 + t * 12})"/>`;
+  s += `<g transform="translate(1660 170)">${raios}<circle r="72" fill="#FFD447" ${contorno(sw)}/></g>`;
+  // nuvens
+  for (const [bx, y, k] of [[220, 150, 1], [900, 110, 1.3], [1300, 250, .8], [-300, 220, 1.1]]) {
+    const x = ((bx + t * 14 * k + 600) % 2800) - 600;
+    s += `<g transform="translate(${x} ${y}) scale(${k})" fill="#fff" ${contorno(sw)}><circle cx="0" cy="0" r="44"/><circle cx="52" cy="-18" r="58"/><circle cx="110" cy="2" r="42"/></g>`;
+    s += `<g transform="translate(${x} ${y}) scale(${k})" fill="#fff"><circle cx="0" cy="0" r="40"/><circle cx="52" cy="-18" r="54"/><circle cx="110" cy="2" r="38"/><rect x="0" y="0" width="110" height="38"/></g>`;
+  }
+  // morros
+  s += `<path d="M-800 640 Q-300 520 200 600 T1100 560 T2000 600 T2800 580 V1500 H-800 Z" fill="${COR.morro1}" ${contorno(sw)}/>`;
+  // árvore
+  s += `<g transform="translate(250 0)"><path d="M-26 830 L-18 560 H18 L26 830 Z" fill="#8A5A3B" ${contorno(sw)}/>
+     ${[[0, 470, 120], [-100, 540, 85], [100, 540, 90], [-40, 600, 80], [60, 610, 75]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + sw}" fill="${OL}"/>`).join('')}
+     ${[[0, 470, 120], [-100, 540, 85], [100, 540, 90], [-40, 600, 80], [60, 610, 75]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${COR.morro2}"/>`).join('')}
+     ${[[-60, 470], [40, 430], [80, 560], [-110, 560], [0, 560]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="13" fill="#E8352E" ${contorno(4)}/>`).join('')}</g>`;
+  // casa do vovô
+  s += `<g>
+    <rect x="1250" y="560" width="480" height="300" fill="#FFE3A8" ${contorno(sw)}/>
+    <rect x="1620" y="380" width="56" height="120" fill="#B5523F" ${contorno(sw)}/>
+    <path d="M1205 585 L1490 375 L1775 585 Z" fill="#D9483B" ${contorno(sw)}/>
+    <rect x="1300" y="630" width="120" height="110" rx="6" fill="#9FD8F5" ${contorno(sw)}/>
+    <path d="M1360 630 V740 M1300 685 H1420" stroke="${OL}" stroke-width="${sw}"/>
+    <rect x="1290" y="738" width="140" height="18" rx="5" fill="#C9874A" ${contorno(sw * .8)}/>
+    <rect x="1560" y="660" width="110" height="200" rx="12" fill="${op.porta ? '#3a2418' : '#A0603A'}" ${contorno(sw)}/>
+    ${op.porta ? `<path d="M1560 660 L1530 672 V872 L1560 860 Z" fill="#A0603A" ${contorno(5)}/>` : `<circle cx="1650" cy="765" r="7" fill="#FFD447" ${contorno(3)}/>`}
+    <circle cx="1490" cy="480" r="34" fill="#FFF6DD" ${contorno(sw)}/><path d="M1490 456 V504 M1466 480 H1514" stroke="${OL}" stroke-width="5"/>
+  </g>`;
+  // cerca
+  let cerca = '';
+  for (const [x0, x1] of [[-800, 112], [300, 1240]]) cerca += `<rect x="${x0}" y="742" width="${x1 - x0}" height="16" fill="#fff" ${contorno(5)}/><rect x="${x0}" y="792" width="${x1 - x0}" height="16" fill="#fff" ${contorno(5)}/>`;
+  for (let x = -760; x < 1230; x += 78) if (x < 100 || x > 290) cerca += `<path d="M${x} 840 V730 L${x + 13} 712 L${x + 26} 730 V840 Z" fill="#fff" ${contorno(5)}/>`;
+  // portão (abre girando para fora)
+  const ab = op.portao || 0, larg = 176 * Math.cos(rad(ab * 75));
+  cerca += `<g transform="translate(118 0)"><rect x="0" y="736" width="${Math.max(8, larg)}" height="80" rx="6" fill="#F5E6C8" ${contorno(5)}/>
+    <path d="M${larg * .25} 736 V816 M${larg * .5} 736 V816 M${larg * .75} 736 V816" stroke="${OL}" stroke-width="3"/></g>`;
+  cerca += `<rect x="104" y="712" width="18" height="128" fill="#fff" ${contorno(5)}/><rect x="292" y="712" width="18" height="128" fill="#fff" ${contorno(5)}/>`;
+  s += cerca;
+  // chão
+  s += `<path d="M-800 850 Q300 800 960 830 T2800 840 V1500 H-800 Z" fill="${COR.chao}" ${contorno(sw)}/>`;
+  s += `<path d="M-800 1000 Q500 960 1100 990 T2800 980 V1500 H-800 Z" fill="${COR.chao2}"/>`;
+  // flores e tufos
+  const flores = [[60, 960], [380, 905], [520, 1010], [1110, 940], [1250, 1020], [1780, 950], [1880, 1040], [-120, 1000], [2040, 990], [700, 1050]];
+  flores.forEach(([x, y], i) => {
+    const a = Math.sin(t * 2 + i) * 6, cor = ['#FF8FB1', '#FFF3A0', '#B28DFF', '#fff'][i % 4];
+    s += `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 0 V-38" stroke="#2E7D32" stroke-width="5"/>
+      ${[0, 72, 144, 216, 288].map(d => `<circle cx="${Math.cos(rad(d)) * 11}" cy="${-42 + Math.sin(rad(d)) * 11}" r="9" fill="${cor}" ${contorno(3.5)}/>`).join('')}
+      <circle cx="0" cy="-42" r="7" fill="#F2994A" ${contorno(3.5)}/></g>`;
+  });
+  for (const [x, y] of [[180, 880], [640, 870], [1000, 900], [1500, 900], [1820, 885], [-200, 900]])
+    s += `<path d="M${x} ${y} l8 -26 l8 22 l8 -30 l8 34" fill="none" stroke="#2E7D32" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (op.tarde) s += `<rect x="-800" y="-400" width="3520" height="1900" fill="#FF7A3D" opacity="${.22 * op.tarde}"/><rect x="-800" y="-400" width="3520" height="1900" fill="#4B2C6B" opacity="${.12 * op.tarde}"/>`;
+  return s;
+}
+
+function borboleta(t, px, py) {
+  const x = px ?? (-100 + t * 70 + Math.sin(t * 1.3) * 60), y = py ?? (500 + Math.sin(t * 2.1) * 60);
+  const k = 0.25 + 0.75 * Math.abs(Math.sin(t * 16));
+  return `<g transform="translate(${x} ${y}) rotate(${Math.sin(t * 2) * 15})">
+    <g transform="scale(${k} 1)"><ellipse cx="-14" cy="-6" rx="15" ry="12" fill="#FFB74D" ${contorno(3.5)}/><ellipse cx="14" cy="-6" rx="15" ry="12" fill="#FFB74D" ${contorno(3.5)}/>
+    <ellipse cx="-10" cy="10" rx="9" ry="8" fill="#FF8A65" ${contorno(3.5)}/><ellipse cx="10" cy="10" rx="9" ry="8" fill="#FF8A65" ${contorno(3.5)}/></g>
+    <rect x="-3" y="-14" width="6" height="30" rx="3" fill="${OL}"/></g>`;
+}
+
+

@@ -123,8 +123,11 @@ def musica(dur):
 
 def colocar(trilha, som, inicio, ganho=1.0):
     k = int(inicio * SR)
+    if k < 0:
+        som, k = som[-k:], 0
     m = min(len(som), len(trilha) - k)
-    trilha[k:k + m] += ganho * som[:m]
+    if m > 0:
+        trilha[k:k + m] += ganho * som[:m]
 
 
 def main(pasta):
